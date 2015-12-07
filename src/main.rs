@@ -13,19 +13,14 @@ fn main() {
 						println!("{:?}@{}", stream, addr);
 						let mut contents: Vec<u8> = Vec::new();
 						match stream.read_to_end(&mut contents) {
-							Ok(read) =>
-								println!("{} = \"{:?}\"", read, contents),
-							Err(error) =>
-								println!("Couldn't read from the stream: {}", error),
+							Ok(read) => println!("{} = \"{:?}\"", read, contents),
+							Err(error) => println!("Couldn't read from the stream: {}", error),
 						}
 					}
-					Err(error) =>
-						println!("Couldn't accept a connection: {}", error)
+					Err(error) => println!("Couldn't accept a connection: {}", error)
 				};
 			}
 		}
-		Err(error) => {
-			println!("Couldn't open the listener: {}", error);
-		}
+		Err(error) => println!("Couldn't open the listener: {}", error),
 	}
 }
