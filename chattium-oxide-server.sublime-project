@@ -3,7 +3,7 @@
 	[
 		{
 			"working_dir": "$project_path",
-			"shell_cmd": "cargo --color always test",
+			"shell_cmd": "cargo test --color always",
 			"name": "Build chattium-oxide-server",
 
 			"target": "ansi_color_build",
