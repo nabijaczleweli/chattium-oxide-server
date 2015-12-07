@@ -1,0 +1,4 @@
+[package]
+name = "chattium-oxide-server"
+version = "0.1.0"
+authors = ["nabijaczleweli <nabijaczleweli@gmail.com>"]
