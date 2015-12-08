@@ -6,4 +6,4 @@ authors = ["nabijaczleweli <nabijaczleweli@gmail.com>"]
 
 [dependencies]
 chattium-oxide-lib = { git = "https://github.com/nabijaczleweli/chattium-oxide-lib.git" }
-tiny_http = "0.5"
+hyper = "0.7"
