@@ -1,26 +1,17 @@
-use std::net::TcpListener;
-use std::io::Read;
+extern crate hyper;
+
+mod client_handler;
+
+use hyper::server::Server;
 
 
 fn main() {
-	match TcpListener::bind("127.0.0.1:0") {
-		Ok(listener) => {
-			println!("{:?}", listener);
-
-			loop {
-				match listener.accept() {
-					Ok((mut stream, addr)) => {
-						println!("{:?}@{}", stream, addr);
-						let mut contents: Vec<u8> = Vec::new();
-						match stream.read_to_end(&mut contents) {
-							Ok(read) => println!("{} = \"{:?}\"", read, contents),
-							Err(error) => println!("Couldn't read from the stream: {}", error),
-						}
-					}
-					Err(error) => println!("Couldn't accept a connection: {}", error)
-				};
-			}
-		}
-		Err(error) => println!("Couldn't open the listener: {}", error),
+	match Server::http("127.0.0.1:50030") {
+		Ok(server) =>
+			match server.handle(client_handler::handle_client) {
+				Ok(listener) => println!("Listening on {}", listener.socket),
+				Err(error) => println!("Couldn't handle client: {}", error),
+			},
+		Err(error) => println!("Couldn't start server: {}", error),
 	}
 }
