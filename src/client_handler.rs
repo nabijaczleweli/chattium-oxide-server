@@ -20,7 +20,7 @@ pub fn handle_client(req: Request, mut res: Response) {
 							StatusCode::Ok
 						},
 						Err(error) => {
-							println!("Couldn't process POSTed message: {}", error);
+							println!("Couldn't process POSTed message from {}: {}", req.remote_addr, error);
 							StatusCode::UnprocessableEntity
 						},
 					},
