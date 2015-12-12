@@ -1,3 +1,4 @@
+extern crate chattium_oxide_lib;
 extern crate hyper;
 
 mod client_handler;
