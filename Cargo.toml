@@ -1,9 +1,14 @@
 [package]
 name = "chattium-oxide-server"
+description = "Chat server for chattium-oxide-client"
+repository = "https://github.com/nabijaczleweli/chattium-oxide-server"
+readme = "README.md"
+keywords = ["chattium-oxide", "chat"]
+license = "MIT"
 version = "0.1.0"
 authors = ["nabijaczleweli <nabijaczleweli@gmail.com>"]
 
 
 [dependencies]
-chattium-oxide-lib = { git = "https://github.com/nabijaczleweli/chattium-oxide-lib.git" }
+chattium_oxide_lib = { git = "https://github.com/nabijaczleweli/chattium-oxide-lib.git" }
 hyper = "0.7"
