@@ -1,3 +1,4 @@
+# Remember to also update in options.rs#Options::parse()
 [package]
 name = "chattium-oxide-server"
 description = "Chat server for chattium-oxide-client"
@@ -11,4 +12,6 @@ authors = ["nabijaczleweli <nabijaczleweli@gmail.com>"]
 
 [dependencies]
 chattium_oxide_lib = { git = "https://github.com/nabijaczleweli/chattium-oxide-lib.git" }
+yaml_file_handler = "0.1.4"
 hyper = "0.7"
+clap = "1.5.3"

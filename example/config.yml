@@ -1,0 +1,4 @@
+port: 50030
+ssl:  # Don't *actually* use those key/cert pairs, they are just for demonstational purposes
+  key: example/key.pem  # Pass: "Vodka"
+  cert: example/cert.pem

@@ -7,3 +7,5 @@
 !*.sublime-project
 !src
 !src/**
+!example
+!example/**
