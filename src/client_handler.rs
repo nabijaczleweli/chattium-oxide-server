@@ -9,7 +9,7 @@ use std::io::{Read, Write};
 
 pub fn handle_client(req: Request, mut res: Response) {
 	let mut req = req;
-	let mut body = format!("{}, use https://github.com/nabijaczleweli/chattium-oxide-client to connect то chat", req.remote_addr);
+	let mut body = format!("{}, use https://github.com/nabijaczleweli/chattium-oxide-client to connect to chat", req.remote_addr);
 
 	*res.status_mut() = match req.method {
 		Method::Post => {
