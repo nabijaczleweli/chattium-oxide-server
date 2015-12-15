@@ -4,7 +4,7 @@ use hyper::server::{Request, Response};
 use hyper::header::ContentLength;
 use hyper::status::StatusCode;
 use hyper::method::Method;
-use std::io::{Read, Write};
+use std::io::{Read, Write, stderr};
 
 
 pub fn handle_client(req: Request, mut res: Response) {
@@ -23,12 +23,12 @@ pub fn handle_client(req: Request, mut res: Response) {
 							StatusCode::Ok
 						},
 						Err(error) => {
-							println!("Couldn't process POSTed message from {}: {}", req.remote_addr, error);
+							let _ = stderr().write_fmt(format_args!("Couldn't process POSTed message from {}: {}", req.remote_addr, error));
 							StatusCode::UnprocessableEntity
 						},
 					},
 				Err(error) => {
-					println!("Failed reading request from {}: {}", req.remote_addr, error);
+					let _ = stderr().write_fmt(format_args!("Failed reading request from {}: {}", req.remote_addr, error));
 					StatusCode::UnsupportedMediaType  // non-UTF-8
 				},
 			}
@@ -37,5 +37,7 @@ pub fn handle_client(req: Request, mut res: Response) {
 	};
 
 	res.headers_mut().set(ContentLength(body.len() as u64));
-	res.start().unwrap().write_all(body.as_bytes()).unwrap();
+	if let Err(error) = res.start().unwrap().write_all(body.as_bytes()) {
+		let _ = stderr().write_fmt(format_args!("Failed to respond to {}: {}", req.remote_addr, error));
+	}
 }
