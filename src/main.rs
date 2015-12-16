@@ -2,6 +2,7 @@ extern crate chattium_oxide_lib;
 extern crate yaml_file_handler;
 extern crate hyper;
 extern crate clap;
+extern crate time;
 
 mod client_handler;
 mod options;

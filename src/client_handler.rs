@@ -4,6 +4,7 @@ use hyper::server::{Request, Response};
 use hyper::header::ContentLength;
 use hyper::status::StatusCode;
 use hyper::method::Method;
+use time::strftime;
 use std::io::{Read, Write, stderr};
 
 
@@ -19,7 +20,7 @@ pub fn handle_client(req: Request, mut res: Response) {
 					match ChatMessage::from_json_string(&reqbody) {
 						Ok(mut message) => {
 							message.sender.fill_ip(req.remote_addr);
-							println!("{:?}", message);
+							println!("{}: {} @ {}", message.sender.name, message.value, strftime("%T", &message.time_posted).unwrap());
 							StatusCode::Ok
 						},
 						Err(error) => {

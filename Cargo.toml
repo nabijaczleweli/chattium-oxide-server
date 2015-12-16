@@ -15,3 +15,4 @@ chattium_oxide_lib = { git = "https://github.com/nabijaczleweli/chattium-oxide-l
 yaml_file_handler = "0.1.4"
 hyper = "0.7"
 clap = "1.5.3"
+time = "0.1.34"
