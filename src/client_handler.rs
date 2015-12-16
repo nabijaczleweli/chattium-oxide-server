@@ -12,11 +12,11 @@ pub fn handle_client(req: Request, mut res: Response) {
 	let mut req = req;
 	let mut body = format!("{}, use https://github.com/nabijaczleweli/chattium-oxide-client to connect to chat", req.remote_addr);
 
-	*res.status_mut() = match req.method {
-		Method::Post => {
-			let mut reqbody = String::new();
-			match req.read_to_string(&mut reqbody) {
-				Ok(_) =>
+	let mut reqbody = String::new();
+	*res.status_mut() = match req.read_to_string(&mut reqbody) {
+		Ok(_) =>
+			match req.method {
+				Method::Post =>
 					match ChatMessage::from_json_string(&reqbody) {
 						Ok(mut message) => {
 							message.sender.fill_ip(req.remote_addr);
@@ -28,13 +28,12 @@ pub fn handle_client(req: Request, mut res: Response) {
 							StatusCode::UnprocessableEntity
 						},
 					},
-				Err(error) => {
-					let _ = stderr().write_fmt(format_args!("Failed reading request from {}: {}", req.remote_addr, error));
-					StatusCode::UnsupportedMediaType  // non-UTF-8
-				},
-			}
+			  _ => StatusCode::ImATeapot,
+			},
+		Err(error) => {
+			let _ = stderr().write_fmt(format_args!("Failed reading request from {}: {}", req.remote_addr, error));
+			StatusCode::UnsupportedMediaType  // non-UTF-8
 		},
-	  _ => StatusCode::ImATeapot,
 	};
 
 	res.headers_mut().set(ContentLength(body.len() as u64));
