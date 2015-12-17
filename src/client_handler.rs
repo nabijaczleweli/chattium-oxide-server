@@ -1,6 +1,6 @@
 use chattium_oxide_lib::json::FromJsonnable;
 use chattium_oxide_lib::ChatMessage;
-use hyper::server::Handler;
+use hyper::server::{Handler, Request, Response};
 use hyper::header::ContentLength;
 use hyper::status::StatusCode;
 use hyper::method::Method;
