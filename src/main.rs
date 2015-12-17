@@ -8,13 +8,15 @@ mod client_handler;
 mod options;
 
 use options::Options;
+use client_handler::ClientHandler;
 use hyper::Error as HyperError;
 use hyper::net::{Openssl, NetworkListener};
-use hyper::server::Server;
+use hyper::server::{Server, Request, Response};
+use chattium_oxide_lib::ChatMessage;
 
 
 fn handle_server<L: 'static + NetworkListener + Send>(server: Server<L>, https: bool) {
-	match server.handle(client_handler::handle_client) {
+	match server.handle(ClientHandler::new()) {
 		Ok(listener) => println!("Listening on port {} with{} SSL", listener.socket.port(), if https {""} else {"out"}),
 		Err(error) => println!("Couldn't handle client: {}", error),
 	}
