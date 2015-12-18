@@ -1,12 +1,12 @@
 use chattium_oxide_lib::json::FromJsonnable;
 use chattium_oxide_lib::ChatMessage;
 use hyper::server::{Handler, Request, Response};
-use hyper::header::ContentLength;
+use hyper::header::{ContentLength, ContentType};
 use hyper::status::StatusCode;
 use hyper::method::Method;
-use time::strftime;
+use time::{strftime, Tm};
 use std::sync::RwLock;
-use std::ops::DerefMut;
+use std::ops::{DerefMut, Deref};
 use std::io::{Read, Write, stderr};
 
 
@@ -25,7 +25,7 @@ impl ClientHandler {
 impl Handler for ClientHandler {
 	fn handle(&self, req: Request, mut res: Response) {
 		let mut req = req;
-		let mut body = format!("{}, use https://github.com/nabijaczleweli/chattium-oxide-client to connect to chat", req.remote_addr);
+		let mut body = "".to_string();
 
 		let mut reqbody = String::new();
 		*res.status_mut() = match req.read_to_string(&mut reqbody) {
@@ -44,6 +44,27 @@ impl Handler for ClientHandler {
 								StatusCode::UnprocessableEntity
 							},
 						},
+					Method::Get => {  // Web browser
+						body = format!("{}, use <a href=\"https://github.com/nabijaczleweli/chattium-oxide-client\">chattium-oxide-client</a> to connect to chat",
+						               req.remote_addr);
+						res.headers_mut().set(ContentType::html());
+						StatusCode::Ok
+					},
+					Method::Trace => {
+						match Tm::from_json_string(&reqbody) {
+							Ok(ts) => {
+								let messages = self.messages.read().unwrap();
+								let msgs = messages.deref().iter().skip_while(|&m| m.time_posted < ts).collect::<Vec<_>>();
+								body = format!("{:?}", msgs);
+								println!("{:?}", msgs);
+								StatusCode::Ok
+							},
+							Err(error) => {
+								let _ = stderr().write_fmt(format_args!("Couldn't process a TRACE timestamp ({:?}) {}: {}\n", reqbody, req.remote_addr, error));
+								StatusCode::UnprocessableEntity
+							},
+						}
+					},
 				  _ => StatusCode::ImATeapot,
 				},
 			Err(error) => {
