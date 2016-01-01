@@ -11,8 +11,7 @@ use options::Options;
 use client_handler::ClientHandler;
 use hyper::Error as HyperError;
 use hyper::net::{Openssl, NetworkListener};
-use hyper::server::{Server, Request, Response};
-use chattium_oxide_lib::ChatMessage;
+use hyper::server::Server;
 
 
 fn handle_server<L: 'static + NetworkListener + Send>(server: Server<L>, https: bool) {

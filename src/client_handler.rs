@@ -1,4 +1,4 @@
-use chattium_oxide_lib::json::FromJsonnable;
+use chattium_oxide_lib::json::{FromJsonnable, ToJsonnable};
 use chattium_oxide_lib::ChatMessage;
 use hyper::server::{Handler, Request, Response};
 use hyper::header::{ContentLength, ContentType};
@@ -54,10 +54,19 @@ impl Handler for ClientHandler {
 						match Tm::from_json_string(&reqbody) {
 							Ok(ts) => {
 								let messages = self.messages.read().unwrap();
-								let msgs = messages.deref().iter().skip_while(|&m| m.time_posted < ts).collect::<Vec<_>>();
-								body = format!("{:?}", msgs);
-								println!("{:?}", msgs);
-								StatusCode::Ok
+								let msgs: Vec<ChatMessage> = messages.deref().iter().skip_while(|&m| m.time_posted < ts).collect::<Vec<&ChatMessage>>()
+								                                     .iter().map(|&m| m.clone()).collect();
+								match msgs.to_json_string() {
+									Ok(msgs) => {
+										body = msgs;
+										StatusCode::Ok
+									},
+									Err(error) => {
+										let _ = stderr().write_fmt(format_args!("Couldn't create a JSON response for {}: {}\n", req.remote_addr, error));
+										body = "[]".to_string();  // Empty array
+										StatusCode::Accepted
+									},
+								}
 							},
 							Err(error) => {
 								let _ = stderr().write_fmt(format_args!("Couldn't process a TRACE timestamp ({:?}) {}: {}\n", reqbody, req.remote_addr, error));
