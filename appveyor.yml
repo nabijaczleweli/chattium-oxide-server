@@ -19,6 +19,7 @@ install:
   - bash -lc "pacman --noconfirm -S mingw-w64-x86_64-toolchain"
   -
   - if "%APPVEYOR_REPO_TAG%" == "true" (set BUILD_OPTS=--release) else (set BUILD_OPTS=--verbose)
+  - mkdir artifacts
 
 build: off
 build_script:
