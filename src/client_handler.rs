@@ -6,7 +6,6 @@ use hyper::status::StatusCode;
 use hyper::method::Method;
 use time::{strftime, Tm};
 use std::sync::RwLock;
-use std::ops::{DerefMut, Deref};
 use std::io::{Read, Write, stderr};
 
 
@@ -36,7 +35,7 @@ impl Handler for ClientHandler {
 							Ok(mut message) => {
 								message.sender.fill_ip(req.remote_addr);
 								println!("{}: {} @ {}", message.sender.name, message.value, strftime("%T", &message.time_posted).unwrap());
-								self.messages.write().unwrap().deref_mut().push(message);
+								self.messages.write().unwrap().push(message);
 								StatusCode::Ok
 							},
 							Err(error) => {
@@ -54,8 +53,7 @@ impl Handler for ClientHandler {
 						match Tm::from_json_string(&reqbody) {
 							Ok(ts) => {
 								let messages = self.messages.read().unwrap();
-								let msgs: Vec<ChatMessage> = messages.deref().iter().skip_while(|&m| m.time_posted < ts).collect::<Vec<&ChatMessage>>()
-								                                     .iter().map(|&m| m.clone()).collect();
+								let msgs: Vec<ChatMessage> = messages.iter().rev().take_while(|&m| m.time_posted >= ts).collect::<Vec<&_>>().iter().rev().map(|&m| m.clone()).collect();
 								match msgs.to_json_string() {
 									Ok(msgs) => {
 										body = msgs;
