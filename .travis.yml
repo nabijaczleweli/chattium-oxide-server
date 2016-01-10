@@ -3,3 +3,21 @@ rust:
   - stable
   - beta
   - nightly
+
+matrix:
+  allow_failures:
+    - rust: nightly
+
+deploy:
+  provider: releases
+  api_key:
+    secure: "WT3b4KLHfYRJ4uoJ0UKktEVgqSZpyDVoBYW2mi4AnZKYPVqpZlsVK1I+2P3rXlw81VxkQILsM17Iwy49L5nrxcYgxt6PJFWxt6yg8ZNTdvjBMM2bcal+u5XnB8WUqzEHNH84ZCqJ+VvbCLTo0IPHGffpsFg7/QOaYQeb4DmT4SIedpdPT0XMtM3H1KIRp6ePQCuEE6Rq5pcai9fUQRgiMozZ+tDgVI282FZhy6jVVInAQM2eBDNty89UqMqwuzfNLC9rU2QxbeAB2BR8U094D7lQmbHiAQWZBzMQ0/l3vMGlTq8DgLF8BJeuJV53T11hyxIM2P+JnOMnpCpwJuuiiY0ZkrNauhi9Q02Oqm7rkOKpIRrl4dteOIJowSLsyzDcxrt2dabyJ/hAlVWSNM+Y0x/EArH+Z50zjZAHUTmroCTZLqS+Fd5pm8zDxHtZUdJZKVk3Wu4voB7OojCrRb9+qUb7RJX7J+vgAlwM0QgoL09GhpVik2He8l6MhyKNLkZ9Fshc64cFb5ejCCnemhRKHsMjn7k7VhlgIQh/j6PrxDcH0PnD1yb1rUWqCMTkddxAn32qrtAy+4fy5YmdcLzNP9PN1RgFkJaOf2zm1j/AP6OPo099U8AmkXiO3aifoOfGM7S2kTWEg63FZqG+nIoSP8GyfDl9B8NLm3z0CrvMo1M="
+  file: target/release/chattium-oxide-server
+  skip_cleanup: true
+  on:
+    tags: true
+    condition: $TRAVIS_RUST_VERSION = stable
+
+before_deploy:
+  - cargo build --release
+  - strip --strip-all --remove-section=.comment --remove-section=.note target/release/chattium-oxide-server
