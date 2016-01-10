@@ -53,7 +53,8 @@ impl Handler for ClientHandler {
 						match Tm::from_json_string(&reqbody) {
 							Ok(ts) => {
 								let messages = self.messages.read().unwrap();
-								let msgs: Vec<ChatMessage> = messages.iter().rev().take_while(|&m| m.time_posted >= ts).collect::<Vec<&_>>().iter().rev().map(|&m| m.clone()).collect();
+								let msgs: Vec<ChatMessage> = messages.iter().rev().take_while(|&m| m.time_posted >= ts).collect::<Vec<&_>>()
+								                                     .iter().rev().map(|&m| m.clone()).collect();
 								match msgs.to_json_string() {
 									Ok(msgs) => {
 										body = msgs;
