@@ -1,0 +1,48 @@
+version: 0.1.0-{build}
+
+skip_tags: false
+
+platform: x64
+configuration: Release
+
+clone_folder: C:\chattium-oxide-server
+
+install:
+  - curl -L https://static.rust-lang.org/dist/rust-beta-x86_64-pc-windows-gnu.msi -oC:\rust-beta-x86_64-pc-windows-gnu.msi
+  - start /w msiexec /qn /quiet /passive /a C:\rust-beta-x86_64-pc-windows-gnu.msi TARGETDIR="C:\Program Files"
+  -
+  - set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;%PATH%;C:\Program Files\Rust\bin
+  - set LIBRARY_PATH=C:\
+  -
+  - bash -lc "pacman --needed --noconfirm -Sy pacman-mirrors"
+  - bash -lc "pacman --noconfirm -Sy"
+  - bash -lc "pacman --noconfirm -S mingw-w64-x86_64-toolchain"
+  -
+  - if "%APPVEYOR_REPO_TAG%" == "true" (set BUILD_OPTS=--release) else (set BUILD_OPTS=--verbose)
+
+build: off
+build_script:
+  - cargo build %BUILD_OPTS%
+  - if "%APPVEYOR_REPO_TAG%" == "true" copy target\release\chattium-oxide-server.exe artifacts\chattium-oxide-server.exe
+  - if "%APPVEYOR_REPO_TAG%" == "true" strip --strip-all --remove-section=.comment --remove-section=.note artifacts/chattium-oxide-server.exe
+
+test: off
+test_script:
+  - cargo test %BUILD_OPTS%
+
+artifacts:
+  - path: artifacts\chattium-oxide-server.exe
+
+deploy:
+  provider: GitHub
+  artifact: /artifacts\/.*/
+  auth_token:
+    secure: RM2tt/knMHSIWz6pu8SKF9qeTCDlcQ1hxRa7SmDRuyzWUQ+FrX3JiI+YgOxfD2i2
+  on:
+    appveyor_repo_tag: true
+
+notifications:
+  - provider: Email
+    to:
+      - nabijaczleweli@gmail.com
+    on_build_status_changed: true
