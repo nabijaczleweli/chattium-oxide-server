@@ -37,7 +37,7 @@ impl Handler for ClientHandler {
 							Ok(mut message) => {
 								message.sender.fill_ip(req.remote_addr);
 								message.fill_id(self.message_id.write().unwrap());
-								println!("{}: {} @ {}", message.sender.name, message.value, strftime("%T", &message.time_posted).unwrap());
+								println!("{}: {} @ {} # {}", message.sender.name, message.value, strftime("%T", &message.time_posted).unwrap(), message.id);
 								self.messages.write().unwrap().push(message);
 								StatusCode::Ok
 							},
