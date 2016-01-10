@@ -11,12 +11,14 @@ use std::io::{Read, Write, stderr};
 
 pub struct ClientHandler {
 	messages: RwLock<Vec<ChatMessage>>,
+	message_id: RwLock<u64>,
 }
 
 impl ClientHandler {
 	pub fn new() -> ClientHandler {
 		ClientHandler{
 			messages: RwLock::new(Vec::new()),
+			message_id: RwLock::new(1),
 		}
 	}
 }
@@ -34,6 +36,7 @@ impl Handler for ClientHandler {
 						match ChatMessage::from_json_string(&reqbody) {
 							Ok(mut message) => {
 								message.sender.fill_ip(req.remote_addr);
+								message.fill_id(self.message_id.write().unwrap());
 								println!("{}: {} @ {}", message.sender.name, message.value, strftime("%T", &message.time_posted).unwrap());
 								self.messages.write().unwrap().push(message);
 								StatusCode::Ok
@@ -53,8 +56,8 @@ impl Handler for ClientHandler {
 						match Tm::from_json_string(&reqbody) {
 							Ok(ts) => {
 								let messages = self.messages.read().unwrap();
-								let msgs: Vec<ChatMessage> = messages.iter().rev().take_while(|&m| m.time_posted >= ts).collect::<Vec<&_>>()
-								                                     .iter().rev().map(|&m| m.clone()).collect();
+								let msgs = messages.iter().rev().take_while(|&m| m.time_posted >= ts).collect::<Vec<&_>>()
+								                   .iter().rev().map(|&m| m.clone()).collect::<Vec<_>>();
 								match msgs.to_json_string() {
 									Ok(msgs) => {
 										body = msgs;
