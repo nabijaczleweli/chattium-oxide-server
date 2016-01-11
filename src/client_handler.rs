@@ -4,7 +4,7 @@ use hyper::server::{Handler, Request, Response};
 use hyper::header::{ContentLength, ContentType};
 use hyper::status::StatusCode;
 use hyper::method::Method;
-use time::{strftime, Tm};
+use time::strftime;
 use std::sync::RwLock;
 use std::io::{Read, Write, stderr};
 
@@ -53,11 +53,11 @@ impl Handler for ClientHandler {
 						StatusCode::Ok
 					},
 					Method::Trace => {
-						match Tm::from_json_string(&reqbody) {
-							Ok(ts) => {
+						match u64::from_json_string(&reqbody) {
+							Ok(id) => {
 								let messages = self.messages.read().unwrap();
-								let msgs = messages.iter().rev().take_while(|&m| m.time_posted >= ts).collect::<Vec<&_>>()
-								                   .iter().rev().map(|&m| m.clone()).collect::<Vec<_>>();
+								let msgs     = messages.iter().rev().take_while(|&m| m.id != id).collect::<Vec<&_>>()
+								                       .iter().rev().map(|&m| m.clone()).collect::<Vec<_>>();
 								match msgs.to_json_string() {
 									Ok(msgs) => {
 										body = msgs;
@@ -71,7 +71,7 @@ impl Handler for ClientHandler {
 								}
 							},
 							Err(error) => {
-								let _ = stderr().write_fmt(format_args!("Couldn't process a TRACE timestamp ({:?}) {}: {}\n", reqbody, req.remote_addr, error));
+								let _ = stderr().write_fmt(format_args!("Couldn't process a TRACE message id ({:?}) from {}: {}\n", reqbody, req.remote_addr, error));
 								StatusCode::UnprocessableEntity
 							},
 						}
