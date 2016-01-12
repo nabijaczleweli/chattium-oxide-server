@@ -46,9 +46,9 @@ impl Handler for ClientHandler {
 								StatusCode::UnprocessableEntity
 							},
 						},
-					Method::Get => {  // Web browser
-						body = format!("{}, use <a href=\"https://github.com/nabijaczleweli/chattium-oxide-client\">chattium-oxide-client</a> to connect to chat",
-						               req.remote_addr);
+					Method::Get => {  // Web browser, probably
+						body = format!("{}, use <a href=\"https://github.com/nabijaczleweli/chattium-oxide-client/releases/latest\">chattium-oxide-client</a>
+							              to connect to chat.", req.remote_addr);
 						res.headers_mut().set(ContentType::html());
 						StatusCode::Ok
 					},
