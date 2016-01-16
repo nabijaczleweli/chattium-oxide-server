@@ -24,8 +24,7 @@ impl ClientHandler {
 }
 
 impl Handler for ClientHandler {
-	fn handle(&self, req: Request, mut res: Response) {
-		let mut req = req;
+	fn handle(&self, mut req: Request, mut res: Response) {
 		let mut body = "".to_string();
 
 		let mut reqbody = String::new();

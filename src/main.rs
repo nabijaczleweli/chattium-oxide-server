@@ -17,7 +17,7 @@ use hyper::server::Server;
 fn handle_server<L: 'static + NetworkListener + Send>(server: Server<L>, https: bool) {
 	match server.handle(ClientHandler::new()) {
 		Ok(listener) => println!("Listening on port {} with{} SSL", listener.socket.port(), if https {""} else {"out"}),
-		Err(error) => println!("Couldn't handle client: {}", error),
+		Err(error)   => println!("Couldn't handle client: {}", error),
 	}
 }
 
@@ -29,7 +29,7 @@ fn main() {
 	match options.ssl {
 		Some(pair) => {
 			match Openssl::with_cert_and_key(pair.0, pair.1) {
-				Ok(ssl) => {handle_server_error(Server::https(&addr, ssl)).map(|s| handle_server(s, true));},
+				Ok(ssl)    => {handle_server_error(Server::https(&addr, ssl)).map(|s| handle_server(s, true));},
 				Err(error) => println!("Couldn't set up OpenSSL: {}", error),
 			}
 		},
