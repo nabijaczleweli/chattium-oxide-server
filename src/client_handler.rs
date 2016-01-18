@@ -10,14 +10,14 @@ use std::io::{Read, Write, stderr};
 
 
 pub struct ClientHandler {
-	messages: RwLock<Vec<ChatMessage>>,
+	messages  : RwLock<Vec<ChatMessage>>,
 	message_id: RwLock<u64>,
 }
 
 impl ClientHandler {
 	pub fn new() -> ClientHandler {
 		ClientHandler{
-			messages: RwLock::new(Vec::new()),
+			messages  : RwLock::new(Vec::new()),
 			message_id: RwLock::new(1),
 		}
 	}
@@ -36,7 +36,8 @@ impl Handler for ClientHandler {
 							Ok(mut message) => {
 								message.sender.fill_ip(req.remote_addr);
 								message.fill_id(self.message_id.write().unwrap());
-								println!("{}: {} @ {} # {}", message.sender.name, message.value, strftime("%T", &message.time_posted).unwrap(), message.id);
+								println!("{}@{}: {} @ {} # {}", message.sender.name, req.remote_addr, message.value, strftime("%T", &message.time_posted).unwrap(),
+								                                message.id);
 								self.messages.write().unwrap().push(message);
 								StatusCode::Ok
 							},
@@ -46,6 +47,7 @@ impl Handler for ClientHandler {
 							},
 						},
 					Method::Get => {  // Web browser, probably
+						println!("Serving {} HTML message to connect via client.", req.remote_addr);
 						body = format!("{}, use <a href=\"https://github.com/nabijaczleweli/chattium-oxide-client/releases/latest\">chattium-oxide-client</a>
 							              to connect to chat.", req.remote_addr);
 						res.headers_mut().set(ContentType::html());

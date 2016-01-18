@@ -23,7 +23,6 @@ fn handle_server<L: 'static + NetworkListener + Send>(server: Server<L>, https: 
 
 fn main() {
 	let options = Options::parse();
-	println!("{:?}", options);
 
 	let addr = &format!("0.0.0.0:{}", options.port)[..];
 	match options.ssl {
