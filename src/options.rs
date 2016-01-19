@@ -25,7 +25,7 @@ impl Options {
 		const SSL_USAGE: &'static str = "--ssl [ssl] 'Sets SSL cert and key in the format: \"CERT_PATH;CERT_KEY_PATH\"'";
 		const USAGE: &'static str = "-c --config=[conf] 'Sets config file to load, values will be overriden by commandline args'";
 
-		let matches = Clapp::new("chattium-oxide-server").version("0.1.0")
+		let matches = Clapp::new("chattium-oxide-server").version(env!("CARGO_PKG_VERSION"))
 		                                                 .author("nabijaczleweli <nabijaczleweli@gmail.com>")
 		                                                 .about("Chat server for chattium-oxide-client")
 		                                                 .args_from_usage(USAGE)
