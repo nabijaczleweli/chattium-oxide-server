@@ -5,7 +5,6 @@ extern crate hyper;
 extern crate clap;
 extern crate time;
 
-mod html_response_handler;
 mod client_handler;
 mod options;
 

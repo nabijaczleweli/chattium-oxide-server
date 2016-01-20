@@ -5,6 +5,7 @@ use hyper::header::{ContentLength, ContentType, CacheControl, CacheDirective, Co
 use hyper::status::StatusCode;
 use hyper::method::Method;
 use hyper::LanguageTag;
+use regex::Regex;
 use time::strftime;
 use std::collections::btree_map::BTreeMap;
 use std::sync::RwLock;
@@ -22,6 +23,19 @@ impl ClientHandler {
 			messages  : RwLock::new(Vec::new()),
 			message_id: RwLock::new(1),
 		}
+	}
+
+
+	fn compact(what: &str) -> String {
+		let regices = [
+			(Regex::new(r#"\s+"#).unwrap(), " "),
+			(Regex::new(r#">\s<"#).unwrap(), "><"),
+			(Regex::new(r#"\s/>"#).unwrap(), "/>"),
+			(Regex::new(r#"\s?\{\s?"#).unwrap(), "{"),
+			(Regex::new(r#"\s?\}\s?"#).unwrap(), "}"),
+		];
+
+		regices.iter().fold(what.to_string(), |curr, ref tpl| tpl.0.replace_all(&curr[..], &tpl.1[..]))
 	}
 }
 
