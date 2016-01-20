@@ -9,19 +9,55 @@ use regex::Regex;
 use time::strftime;
 use std::collections::btree_map::BTreeMap;
 use std::sync::RwLock;
-use std::io::{Read, Write, stderr};
+use std::io::{self, Read, Write, stderr};
 
 
 pub struct ClientHandler {
-	messages  : RwLock<Vec<ChatMessage>>,
-	message_id: RwLock<u64>,
+	messages    : RwLock<Vec<ChatMessage>>,
+	message_id  : RwLock<u64>,
+	html_message: String,
 }
 
 impl ClientHandler {
 	pub fn new() -> ClientHandler {
 		ClientHandler{
-			messages  : RwLock::new(Vec::new()),
-			message_id: RwLock::new(1),
+			messages    : RwLock::new(Vec::new()),
+			message_id  : RwLock::new(1),
+			html_message: Self::compact(r##"<!DOCTYPE html>
+			                                <html>
+			                                <head>
+			                                	<title>chattium-oxide — please connect with chattium-oxide client</title>
+			                                	<meta charset="utf-8" />
+			                                	<meta name="application-name" content="chattium-oxide" />
+			                                	<meta name="author"           content="chattium-oxide server" />
+			                                	<meta name="description"      content="Please reconnect with chattium-oxide client" />
+			                                	<meta name="keywords"         content="chat,open source" />
+			                                	<meta name="robots"           content="index,follow" />
+			                                	<style type="text/css">
+			                                		.q {
+			                                			font-size: 1.2em;
+			                                		}
+			                                	</style>
+			                                </head>
+			                                <body>
+			                                	<p>
+			                                		<b class="q">What is Ч<small>@</small>O<sub>2</sub>?</b><br />
+			                                		Ч<small>@</small>O<sub>2</sub> (read: <i>chattium oxide</i>, as in: chemical compound) is a lightweight chat
+			                                		platform written in Rust with an aim for simplicity. Both the
+			                                		<a href="https://github.com/nabijaczleweli/chattium-oxide-client">client</a> and the
+			                                		<a href="https://github.com/nabijaczleweli/chattium-oxide-server">server</a> reside on
+			                                		<a href="https://github.com">GitHub</a>.
+			                                	</p>
+			                                	<p>
+			                                		<b class="q">How do I connect to a Ч<small>@</small>O<sub>2</sub> server?</b><br />
+			                                		Just type in the exact URL of this page into the client, as this document is sent by the
+			                                		Ч<small>@</small>O<sub>2</sub> server itself.<br />
+			                                		Latest Windows and Ubuntu client binaries can be downloaded from the
+			                                		<a href="https://github.com/nabijaczleweli/chattium-oxide-client/releases/latest">latest
+			                                		Ч<small>@</small>O<sub>2</sub> client release page</a> to connect to chat.
+			                                	</p>
+			                                </body>
+			                                </html>"##),
 		}
 	}
 
@@ -41,7 +77,8 @@ impl ClientHandler {
 
 impl Handler for ClientHandler {
 	fn handle(&self, mut req: Request, mut res: Response) {
-		let mut body = "".to_string();
+		let mut body_ref: Option<&String> = None;
+		let mut body    : Option<String>  = None;
 
 		let mut reqbody = String::new();
 		*res.status_mut() = match req.read_to_string(&mut reqbody) {
@@ -64,39 +101,7 @@ impl Handler for ClientHandler {
 						},
 					Method::Get => {  // Web browser, probably
 						println!("Serving {} HTML message to connect via client.", req.remote_addr);
-						body = r#"<!DOCTYPE html>
-						          <html>
-						          <head>
-						          	<title>chattium-oxide — please connect with chattium-oxide client</title>
-						          	<meta charset="utf-8" />
-						          	<meta name="application-name" content="chattium-oxide" />
-						          	<meta name="author"           content="chattium-oxide server" />
-						          	<meta name="description"      content="Please reconnect with chattium-oxide client" />
-						          	<meta name="keywords"         content="chat,open source" />
-						          	<meta name="robots"           content="index,follow" />
-						          	<style type="text/css">
-						          		.q {
-						          			font-size: 1.2em;
-						          		}
-						          	</style>
-						          </head>
-						          <body>
-						          	<p>
-						          		<b class="q">What is Ч<small>@</small>O<sub>2</sub>?</b><br />
-						          		Ч<small>@</small>O<sub>2</sub> (read: <i>chattium oxide</i>, as in: chemical compound) is a lightweight chat platform written in
-						          		Rust with an aim for simplicity. Both the <a href="https://github.com/nabijaczleweli/chattium-oxide-client">client</a> and the
-						          		<a href="https://github.com/nabijaczleweli/chattium-oxide-server">server</a> reside on <a href="https://github.com">GitHub</a>.
-						          	</p>
-						          	<p>
-						          		<b class="q">How do I connect to a Ч<small>@</small>O<sub>2</sub> server?</b><br />
-						          		Just type in the exact URL of this page into the client, as this document is sent by the Ч<small>@</small>O<sub>2</sub> server
-						          		itself.<br />
-						          		Latest Windows and Ubuntu client binaries can be downloaded from the
-						          		<a href="https://github.com/nabijaczleweli/chattium-oxide-client/releases/latest">latest Ч<small>@</small>O<sub>2</sub> client
-						          		release page</a> to connect to chat.
-						          	</p>
-						          </body>
-						          </html>"#.to_string();
+						body_ref = Some(&self.html_message);
 						res.headers_mut().set(ContentType::html());
 						res.headers_mut().set(Server(concat!("chattium-oxide-server/", env!("CARGO_PKG_VERSION")).to_string()));
 						res.headers_mut().set(ContentLanguage(vec![qitem(LanguageTag{
@@ -122,12 +127,12 @@ impl Handler for ClientHandler {
 								                       .iter().rev().map(|&m| m.clone()).collect::<Vec<_>>();
 								match msgs.to_json_string() {
 									Ok(msgs) => {
-										body = msgs;
+										body = Some(msgs);
 										StatusCode::Ok
 									},
 									Err(error) => {
 										let _ = stderr().write_fmt(format_args!("Couldn't create a JSON response for {}: {}\n", req.remote_addr, error));
-										body = "[]".to_string();  // Empty array
+										body = Some("[]".to_string());  // Empty array
 										StatusCode::Accepted
 									},
 								}
@@ -146,9 +151,22 @@ impl Handler for ClientHandler {
 			},
 		};
 
-		res.headers_mut().set(ContentLength(body.len() as u64));
-		if let Err(error) = res.start().unwrap().write_all(body.as_bytes()) {
-			let _ = stderr().write_fmt(format_args!("Failed to respond to {}: {}", req.remote_addr, error));
+
+		let handle_error = |error: Result<(), io::Error>| {
+			if let Err(error) = error {
+				let _ = stderr().write_fmt(format_args!("Failed to respond to {}: {}", req.remote_addr, error));
+			}
+		};
+
+		let reply = |body: &String| {
+			res.headers_mut().set(ContentLength(body.len() as u64));
+			handle_error(res.start().unwrap().write_all(body.as_bytes()));
+		};
+
+		match (body, body_ref) {
+			(Some(body), _)     => reply(&body),
+			(_, Some(ref body)) => reply(&body),
+			(None, None)        => reply(&"".to_string()),
 		}
 	}
 }
