@@ -12,6 +12,7 @@ authors = ["nabijaczleweli <nabijaczleweli@gmail.com>"]
 [dependencies]
 chattium_oxide_lib = { git = "https://github.com/nabijaczleweli/chattium-oxide-lib.git" }
 yaml_file_handler = "0.1.4"
+flate2 = "0.2"
 regex = "0.1"
 hyper = "0.7"
 clap = "1.5.3"
