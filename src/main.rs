@@ -1,9 +1,11 @@
 extern crate chattium_oxide_lib;
 extern crate yaml_file_handler;
+extern crate regex;
 extern crate hyper;
 extern crate clap;
 extern crate time;
 
+mod html_response_handler;
 mod client_handler;
 mod options;
 
