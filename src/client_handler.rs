@@ -1,10 +1,12 @@
 use chattium_oxide_lib::json::{FromJsonnable, ToJsonnable};
 use chattium_oxide_lib::ChatMessage;
 use hyper::server::{Handler, Request, Response};
-use hyper::header::{ContentLength, ContentType};
+use hyper::header::{ContentLength, ContentType, CacheControl, CacheDirective, ContentLanguage, Server, qitem};
 use hyper::status::StatusCode;
 use hyper::method::Method;
+use hyper::LanguageTag;
 use time::strftime;
+use std::collections::btree_map::BTreeMap;
 use std::sync::RwLock;
 use std::io::{Read, Write, stderr};
 
@@ -48,9 +50,54 @@ impl Handler for ClientHandler {
 						},
 					Method::Get => {  // Web browser, probably
 						println!("Serving {} HTML message to connect via client.", req.remote_addr);
-						body = format!("{}, use <a href=\"https://github.com/nabijaczleweli/chattium-oxide-client/releases/latest\">chattium-oxide-client</a>
-							              to connect to chat.", req.remote_addr);
+						body = r#"<!DOCTYPE html>
+						          <html>
+						          <head>
+						          	<title>chattium-oxide — please connect with chattium-oxide client</title>
+						          	<meta charset="utf-8" />
+						          	<meta name="application-name" content="chattium-oxide" />
+						          	<meta name="author"           content="chattium-oxide server" />
+						          	<meta name="description"      content="Please reconnect with chattium-oxide client" />
+						          	<meta name="keywords"         content="chat,open source" />
+						          	<meta name="robots"           content="index,follow" />
+						          	<style type="text/css">
+						          		.q {
+						          			font-size: 1.2em;
+						          		}
+						          	</style>
+						          </head>
+						          <body>
+						          	<p>
+						          		<b class="q">What is Ч<small>@</small>O<sub>2</sub>?</b><br />
+						          		Ч<small>@</small>O<sub>2</sub> (read: <i>chattium oxide</i>, as in: chemical compound) is a lightweight chat platform written in
+						          		Rust with an aim for simplicity. Both the <a href="https://github.com/nabijaczleweli/chattium-oxide-client">client</a> and the
+						          		<a href="https://github.com/nabijaczleweli/chattium-oxide-server">server</a> reside on <a href="https://github.com">GitHub</a>.
+						          	</p>
+						          	<p>
+						          		<b class="q">How do I connect to a Ч<small>@</small>O<sub>2</sub> server?</b><br />
+						          		Just type in the exact URL of this page into the client, as this document is sent by the Ч<small>@</small>O<sub>2</sub> server
+						          		itself.<br />
+						          		Latest Windows and Ubuntu client binaries can be downloaded from the
+						          		<a href="https://github.com/nabijaczleweli/chattium-oxide-client/releases/latest">latest Ч<small>@</small>O<sub>2</sub> client
+						          		release page</a> to connect to chat.
+						          	</p>
+						          </body>
+						          </html>"#.to_string();
 						res.headers_mut().set(ContentType::html());
+						res.headers_mut().set(Server(concat!("chattium-oxide-server/", env!("CARGO_PKG_VERSION")).to_string()));
+						res.headers_mut().set(ContentLanguage(vec![qitem(LanguageTag{
+							language  : Some("en-GB".to_string()),
+							extlangs  : vec![],
+							script    : None,
+							region    : None,
+							variants  : vec![],
+							extensions: BTreeMap::new(),
+							privateuse: vec![],
+						})]));
+						res.headers_mut().set(CacheControl(vec![
+							CacheDirective::Public,
+							CacheDirective::MaxAge(60 * 60 * 24 * 7),
+						]));
 						StatusCode::Ok
 					},
 					Method::Trace => {
