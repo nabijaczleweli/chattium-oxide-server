@@ -54,7 +54,7 @@ impl ClientHandler {
 			                                		Ч<small>@</small>O<sub>2</sub> server itself.<br />
 			                                		Latest Windows and Ubuntu client binaries can be downloaded from the
 			                                		<a href="https://github.com/nabijaczleweli/chattium-oxide-client/releases/latest">latest
-			                                		Ч<small>@</small>O<sub>2</sub> client release page</a> to connect to chat.
+			                                		Ч<small>@</small>O<sub>2</sub> client release page</a>.
 			                                	</p>
 			                                </body>
 			                                </html>"##),
