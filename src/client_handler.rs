@@ -38,6 +38,11 @@ impl ClientHandler {
 			                                			font-size: 1.2em;
 			                                		}
 			                                	</style>
+			                                	<script type="text/javascript">
+			                                		window.addEventListener("load", function() {
+			                                			document.getElementById("own_url").textContent = document.URL.replace(/\/$/, "");
+			                                		});
+			                                	</script>
 			                                </head>
 			                                <body>
 			                                	<p>
@@ -50,7 +55,7 @@ impl ClientHandler {
 			                                	</p>
 			                                	<p>
 			                                		<b class="q">How do I connect to a Ч<small>@</small>O<sub>2</sub> server?</b><br />
-			                                		Just type in the exact URL of this page into the client, as this document is sent by the
+			                                		Just type in the exact URL of this page (<code id="own_url"></code>) into the client, as this document is sent by the
 			                                		Ч<small>@</small>O<sub>2</sub> server itself.<br />
 			                                		Latest Windows and Ubuntu client binaries can be downloaded from the
 			                                		<a href="https://github.com/nabijaczleweli/chattium-oxide-client/releases/latest">latest
