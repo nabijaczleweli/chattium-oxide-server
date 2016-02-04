@@ -21,9 +21,9 @@ impl Options {
 	/// Optionally reads from a config file in [YAML](http://yaml.org) format, however commandline arguments take preference thereover.
 	/// The config file format is non-trivial, see `"example/config.yml"`.
 	pub fn parse() -> Options {
-		const PORT_USAGE: &'static str = "-p --port [port] 'Specifies the port the server will run on, will prompt if not specified'";
-		const SSL_USAGE: &'static str = "--ssl [ssl] 'Sets SSL cert and key in the format: \"CERT_PATH;CERT_KEY_PATH\"'";
-		const USAGE: &'static str = "-c --config=[conf] 'Sets config file to load, values will be overriden by commandline args'";
+		const PORT_USAGE: &'static str = "-p --port [PORT]          'Specifies the port the server will run on, will prompt if not specified'";
+		const USAGE:      &'static str = "--ssl [SSL_CERT;SSL_KEY]  'Sets SSL cert and key to use
+		                                  -c --config=[CONFIG_FILE] 'Sets config file to load, values will be overriden by commandline args'";
 
 		let matches = Clapp::new("chattium-oxide-server").version(env!("CARGO_PKG_VERSION"))
 		                                                 .author("nabijaczleweli <nabijaczleweli@gmail.com>")
@@ -35,26 +35,16 @@ impl Options {
 		                                                 		Err(error) => Err(error.description().to_string()),
 		                                                 	}
 		                                                 }))
-		                                                 .arg(Clarg::from_usage(SSL_USAGE).validator(|val| {
-		                                                 	if val.chars().find(|c| *c == ';').is_some() {
-		                                                 		if val.len() >= 3 {  // Naive, replace with something better, maybe?
-		                                                 			Ok(())
-		                                                 		} else {
-		                                                 			Err(String::from("the value must contain 2 paths"))
-		                                                 		}
-		                                                 	} else {
-		                                                 		Err(String::from("the value must contain the separator"))
-		                                                 	}
-		                                                 }))
 		                                                 .get_matches();
-		let mut port: Option<u16> = None;
+		let mut port    : Option<u16>    = None;
 		let mut ssl_cert: Option<String> = None;
-		let mut ssl_key: Option<String> = None;
-		if let Some(conf) = matches.value_of("conf") {
+		let mut ssl_key : Option<String> = None;
+
+		if let Some(config) = matches.value_of("config") {
 			let mut yaml = YamlFileHandler::new();
-			if yaml.add_files(vec![conf]) {
+			if yaml.add_files(vec![config]) {
 				if let Some(yaml) = yaml.read_all_files().as_ref().map(|all| {
-					let mut b = PathBuf::from(conf);
+					let mut b = PathBuf::from(config);
 					b.set_extension("");
 					&all[b.file_name().unwrap().to_str().unwrap()]
 				}) {
@@ -68,7 +58,8 @@ impl Options {
 		}
 
 		if let Some(cport) = matches.value_of("port") {port = Some(u16::from_str(cport).unwrap())}  // Validated using Arg::validator
-		if let Some(cssl) = matches.value_of("ssl") {
+		if let Some(cssl) = matches.values_of("ssl") {
+			let cssl = cssl.collect::<Vec<_>>().join(";");
 			let mut paths = cssl.split(';');
 			ssl_cert = Some(paths.next().unwrap().to_string());
 			ssl_key  = Some(paths.next().unwrap().to_string());
