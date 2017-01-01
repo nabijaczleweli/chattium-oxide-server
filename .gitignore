@@ -8,5 +8,7 @@
 !*.sublime-project
 !src
 !src/**
+!assets
+!assets/**
 !example
 !example/**

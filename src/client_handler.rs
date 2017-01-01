@@ -1,5 +1,6 @@
 use chattium_oxide_lib::json::{FromJsonnable, ToJsonnable};
 use chattium_oxide_lib::ChatMessage;
+use base64;
 use hyper::server::{Handler, Request, Response};
 use hyper::header::{ContentLength, ContentType, CacheControl, CacheDirective, ContentLanguage,
                     Server, qitem};
@@ -9,6 +10,7 @@ use hyper::LanguageTag;
 use regex::Regex;
 use time::strftime;
 use std::collections::btree_map::BTreeMap;
+use std::borrow::Cow;
 use std::sync::RwLock;
 use std::io::{self, Read, Write, stderr};
 
@@ -24,58 +26,39 @@ impl ClientHandler {
         ClientHandler{
 			messages    : RwLock::new(Vec::new()),
 			message_id  : RwLock::new(1),
-			html_message: Self::compact(r##"<!DOCTYPE html>
-			                                <html>
-			                                <head>
-			                                	<title>chattium-oxide — please connect with chattium-oxide client</title>
-			                                	<meta charset="utf-8" />
-			                                	<meta name="application-name" content="chattium-oxide" />
-			                                	<meta name="author"           content="chattium-oxide server" />
-			                                	<meta name="description"      content="Please reconnect with chattium-oxide client" />
-			                                	<meta name="keywords"         content="chat,open source" />
-			                                	<meta name="robots"           content="index,follow" />
-			                                	<style type="text/css">
-			                                		.q {
-			                                			font-size: 1.2em;
-			                                		}
-			                                	</style>
-			                                	<script type="text/javascript">
-			                                		window.addEventListener("load", function() {
-			                                			document.getElementById("own_url").textContent = document.URL.replace(/\/$/, "");
-			                                		});
-			                                	</script>
-			                                </head>
-			                                <body>
-			                                	<p>
-			                                		<b class="q">What is Ч<small>@</small>O<sub>2</sub>?</b><br />
-			                                		Ч<small>@</small>O<sub>2</sub> (read: <i>chattium oxide</i>, as in: chemical compound) is a lightweight chat
-			                                		platform written in Rust with an aim for simplicity. Both the
-			                                		<a href="https://github.com/nabijaczleweli/chattium-oxide-client">client</a> and the
-			                                		<a href="https://github.com/nabijaczleweli/chattium-oxide-server">server</a> reside on
-			                                		<a href="https://github.com">GitHub</a>.
-			                                	</p>
-			                                	<p>
-			                                		<b class="q">How do I connect to a Ч<small>@</small>O<sub>2</sub> server?</b><br />
-			                                		Just type in the exact URL of this page (<code id="own_url"></code>) into the client, as this document is sent by the
-			                                		Ч<small>@</small>O<sub>2</sub> server itself.<br />
-			                                		Latest Windows and Ubuntu client binaries can be downloaded from the
-			                                		<a href="https://github.com/nabijaczleweli/chattium-oxide-client/releases/latest">latest
-			                                		Ч<small>@</small>O<sub>2</sub> client release page</a>.
-			                                	</p>
-			                                </body>
-			                                </html>"##),
+			html_message: Self::compact(Self::template(include_str!("../assets/reconnect.html"))),
 		}
     }
 
 
-    fn compact(what: &str) -> String {
-        let regices = [(Regex::new(r#"\s+"#).unwrap(), " "),
-                       (Regex::new(r#">\s<"#).unwrap(), "><"),
-                       (Regex::new(r#"\s/>"#).unwrap(), "/>"),
-                       (Regex::new(r#"\s?\{\s?"#).unwrap(), "{"),
-                       (Regex::new(r#"\s?\}\s?"#).unwrap(), "}")];
+    fn template(what: &str) -> String {
+        lazy_static! {
+            static ref SUBSTITUTES: BTreeMap<&'static str, Cow<'static, str>> = {
+                let mut res = BTreeMap::new();
+                res.insert("favicon", Cow::Owned(format!("data:image/x-icon;base64,{}", base64::encode(include_bytes!("../assets/favicon.ico")))));
+                res.insert("common_css", Cow::Borrowed(include_str!("../assets/common.css")));
+                res.insert("set_own_url", Cow::Borrowed(include_str!("../assets/set_own_url.js")));
+                res.insert("logo_s", Cow::Borrowed("Ч<small>@</small>O<sub>2</sub>"));
+                res
+            };
+        }
 
-        regices.iter().fold(what.to_string(),
+        SUBSTITUTES.iter().fold(what.to_string(),
+                                |curr, (tpl, sub)| curr.replace(&format!("{{{}}}", tpl), sub))
+    }
+
+    fn compact(what: String) -> String {
+        lazy_static! {
+            static ref REGICES: [(Regex, &'static str); 5] = [
+                (Regex::new(r#"\s+"#).unwrap(), " "),
+                (Regex::new(r#">\s<"#).unwrap(), "><"),
+                (Regex::new(r#"\s/>"#).unwrap(), "/>"),
+                (Regex::new(r#"\s?\{\s?"#).unwrap(), "{"),
+                (Regex::new(r#"\s?\}\s?"#).unwrap(), "}")
+            ];
+        }
+
+        REGICES.iter().fold(what.to_string(),
                             |curr, ref tpl| tpl.0.replace_all(&curr[..], &tpl.1[..]))
     }
 }

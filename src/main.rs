@@ -1,5 +1,8 @@
 extern crate chattium_oxide_lib;
 extern crate yaml_file_handler;
+#[macro_use]
+extern crate lazy_static;
+extern crate base64;
 extern crate regex;
 extern crate hyper;
 extern crate clap;

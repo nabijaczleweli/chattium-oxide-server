@@ -3,7 +3,7 @@
 	[
 		{
 			"working_dir": "$project_path",
-			"shell_cmd": "cargo test --color always",
+			"shell_cmd": "cargo build --color always",
 			"name": "Build chattium-oxide-server",
 
 			"target": "ansi_color_build",
@@ -16,6 +16,11 @@
 			"follow_symlinks": true,
 			"name": "Source",
 			"path": "src"
+		},
+		{
+			"follow_symlinks": true,
+			"name": "Assets",
+			"path": "assets"
 		},
 		{
 			"follow_symlinks": true,
